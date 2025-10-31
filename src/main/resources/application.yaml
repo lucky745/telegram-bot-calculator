@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: parts-calculator-bot
+  main:
+    banner-mode: off
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+bot:
+  name: ${BOT_NAME:}
+  token: ${BOT_TOKEN:}
+  creator-id: ${CREATOR_ID:}

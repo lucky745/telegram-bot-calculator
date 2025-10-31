@@ -1,0 +1,175 @@
+package com.lucky.bot.telegram;
+
+import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
+import com.lucky.bot.telegram.response.processor.PartCalculatorResponseProcessor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.abilitybots.api.bot.AbilityBot;
+import org.telegram.telegrambots.abilitybots.api.bot.BaseAbilityBot;
+import org.telegram.telegrambots.abilitybots.api.objects.Ability;
+import org.telegram.telegrambots.abilitybots.api.objects.Reply;
+import org.telegram.telegrambots.abilitybots.api.toggle.CustomToggle;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+import static com.lucky.bot.telegram.response.MenuResponse.chooseLanguageMarkup;
+import static com.lucky.bot.util.Util.*;
+import static java.lang.String.format;
+import static org.telegram.telegrambots.abilitybots.api.objects.Flag.CALLBACK_QUERY;
+import static org.telegram.telegrambots.abilitybots.api.objects.Locality.USER;
+import static org.telegram.telegrambots.abilitybots.api.objects.Privacy.CREATOR;
+import static org.telegram.telegrambots.abilitybots.api.objects.Privacy.PUBLIC;
+
+@Slf4j
+@Component
+public class Bot extends AbilityBot {
+    public static final String START = "start";
+    public static final String COUNT = "count";
+    public static final String CALLBACK_STATS = "callback";
+    public static final String USAGE_COUNT_MAP = "COUNTERS";
+    public static final String INLINE_USER_PATTERN = "[%d](tg://user?id=%d)";
+    private static final String NOTIFICATION = "Bot has been successfully started.";
+
+    @Value("${bot.creator-id}")
+    private long creatorId;
+
+    private static final CustomToggle toggle = new CustomToggle()
+            .turnOff("promote")
+            .turnOff("demote")
+            .turnOff("unban")
+            .turnOff("ban");
+
+    private final PartCalculatorResponseProcessor processor;
+
+    public Bot(TelegramClient telegramClient, String botUsername, PartCalculatorResponseProcessor processor) {
+        super(telegramClient, botUsername, toggle);
+        this.processor = processor;
+    }
+
+    @Override
+    public void onRegister() {
+        super.onRegister();
+        notification();
+    }
+
+    @Override
+    public long creatorId() {
+        return creatorId;
+    }
+
+    private void notification() {
+        log.info("{} creatorId: {}", NOTIFICATION, creatorId);
+        this.silent.send(NOTIFICATION, creatorId);
+    }
+
+    public Ability start() {
+        return Ability.builder()
+                .name(START)
+                .locality(USER)
+                .privacy(PUBLIC)
+                .setStatsEnabled(true)
+                .action(ctx -> handleReplyToStart(ctx.chatId()))
+                .build();
+    }
+
+    public Ability usageCount() {
+        return Ability.builder()
+                .name(COUNT)
+                .locality(USER)
+                .privacy(CREATOR)
+                .action(ctx -> handleReplyToUsageCount())
+                .build();
+    }
+
+    public Reply replyToCallbackQueries() {
+        BiConsumer<BaseAbilityBot, Update> action = (bot, upd) -> handleReplyToCallbackQuery(upd);
+        return Reply.of(action, CALLBACK_QUERY).enableStats(CALLBACK_STATS);
+    }
+
+    private void handleReplyToStart(long chatId) {
+        silent.execute(SendMessage.builder()
+                .chatId(chatId)
+                .text(CONVERSATION_START_MESSAGE)
+                .parseMode(MARKDOWN)
+                .replyMarkup(chooseLanguageMarkup())
+                .build()
+        );
+    }
+
+    private void handleReplyToUsageCount() {
+        Map<Long, Integer> countMap = db.getMap(USAGE_COUNT_MAP);
+        String counters = countMap.entrySet().stream()
+                .map(entry -> format(INLINE_USER_PATTERN, entry.getValue(), entry.getKey()))
+                .collect(Collectors.joining(NEW_LINE));
+        silent.sendMd(counters, creatorId());
+    }
+
+    private void handleReplyToCallbackQuery(Update upd) {
+        BaseResponseHandler response = processor.processResponse(getCallbackData(upd));
+        execute(editMessageText(upd, response), getCallbackQueryId(upd));
+        countCalculatorUsage(response.isToCalculate(), getChatId(upd));
+    }
+
+    private EditMessageText editMessageText(Update upd, BaseResponseHandler response) {
+        return EditMessageText.builder()
+                .chatId(getChatId(upd))
+                .messageId(getMessageId(upd))
+                .text(response.getText())
+                .replyMarkup(response.getKeyboardMarkup())
+                .parseMode(HTML)
+                .build();
+    }
+
+    private void execute(EditMessageText emsg, String callbackQueryId) {
+        if (emsg.getReplyMarkup() == null) {
+            silent.execute(simpleCallbackAnswer(callbackQueryId, emsg.getText(), true));
+        } else {
+            silent.execute(simpleCallbackAnswer(callbackQueryId));
+            silent.execute(emsg);
+        }
+    }
+
+    private AnswerCallbackQuery simpleCallbackAnswer(String callbackQueryId) {
+        return simpleCallbackAnswer(callbackQueryId, null, false);
+    }
+
+    private AnswerCallbackQuery simpleCallbackAnswer(String callbackQueryId, String text, boolean alert) {
+        return AnswerCallbackQuery
+                .builder()
+                .callbackQueryId(callbackQueryId)
+                .showAlert(alert)
+                .text(text)
+                .build();
+    }
+
+    private void countCalculatorUsage(boolean isReplyToCalculate, long userId) {
+        if (isReplyToCalculate) {
+            Map<Long, Integer> countMap = db.getMap(USAGE_COUNT_MAP);
+            countMap.compute(userId, (id, count) -> count == null ? 1 : ++count);
+        }
+    }
+
+    private static String getCallbackData(Update upd) {
+        return upd.getCallbackQuery().getData();
+    }
+
+    private static long getChatId(Update upd) {
+        return upd.getCallbackQuery().getMessage().getChatId();
+    }
+
+    private static int getMessageId(Update upd) {
+        return upd.getCallbackQuery().getMessage().getMessageId();
+    }
+
+    private static String getCallbackQueryId(Update update) {
+        return update.getCallbackQuery().getId();
+    }
+}
