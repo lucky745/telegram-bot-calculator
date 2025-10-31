@@ -1,4 +1,4 @@
-# [C.A.T.S.](https://www.catsthegame.com/) telegram bot calculator
+# [C.A.T.S.](https://www.catsthegame.com/) telegram [bot](https://t.me/zeptolab_bot) calculator
 Calculates ultimate parts upgrade costs and stats upon upgrades.
 
 
