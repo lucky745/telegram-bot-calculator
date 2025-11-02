@@ -4,9 +4,11 @@ import com.lucky.bot.part.Part;
 import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.type.PartType;
 import com.lucky.bot.telegram.response.callback.ActionCode;
+import com.lucky.bot.telegram.response.callback.CallbackData;
 import com.lucky.bot.telegram.response.callback.CallbackType;
 import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
 import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -19,28 +21,29 @@ import static com.lucky.bot.telegram.response.LanguageResponse.callbackDataChoos
 import static com.lucky.bot.util.Util.*;
 import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
+@Component
 public class PartGradeResponse extends BaseResponseHandler {
     private static final String LIST_EMPTY = "list_empty";
     private static final String BACK_TO_GRADE_SELECTION = "back_to_grades";
 
-    public PartGradeResponse(CallbackType callbackType) {
-        super(callbackType);
+    public PartGradeResponse() {
+        super(CallbackType.PART_GRADE);
     }
 
     @Override
-    public void respond() {
-        String locale = getCallbackData().getLocale();
-        PartType partType = getCallbackData().getPartType();
-        PartGrade partGrade = getCallbackData().getPartGrade();
+    public Response respond(CallbackData callbackData) {
+        String locale = callbackData.getLocale();
+        PartType partType = callbackData.getPartType();
+        PartGrade partGrade = callbackData.getPartGrade();
         List<Part> filteredParts = getPartsByTypeAndGrade(partType, partGrade);
 
         if (filteredParts.isEmpty()) {
-            setText(getLocalizedMessage(LIST_EMPTY, locale));
-            return;
+            return new Response(getLocalizedMessage(LIST_EMPTY, locale));
         }
 
-        setText(getPartText(partType, partGrade, locale));
-        setKeyboardMarkup(selectPartMarkup(filteredParts, locale));
+        String text = getPartText(partType, partGrade, locale);
+        InlineKeyboardMarkup keyboard = selectPartMarkup(filteredParts, locale);
+        return new Response(text, keyboard);
     }
 
     private static String getPartText(PartType partType, PartGrade partGrade, String locale) {

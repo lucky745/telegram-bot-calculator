@@ -1,9 +1,11 @@
 package com.lucky.bot.telegram.response;
 
 import com.lucky.bot.part.Part;
+import com.lucky.bot.telegram.response.callback.CallbackData;
 import com.lucky.bot.telegram.response.callback.CallbackType;
 import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
 import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -13,27 +15,28 @@ import static com.lucky.bot.telegram.response.PartGradeResponse.callbackDataChoo
 import static com.lucky.bot.util.Util.*;
 import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
+@Component
 public class LevelResponse extends BaseResponseHandler {
     private static final String LEVEL_ERROR = "level_error";
     private static final String BACK_TO_LEVEL_SELECTION = "back_to_level";
 
-    public LevelResponse(CallbackType callbackType) {
-        super(callbackType);
+    public LevelResponse() {
+        super(CallbackType.LEVEL);
     }
 
     @Override
-    public void respond() {
-        String locale = getCallbackData().getLocale();
-        Part part = getCallbackData().getPart();
-        int level = getCallbackData().getLevel();
+    public Response respond(CallbackData callbackData) {
+        String locale = callbackData.getLocale();
+        Part part = callbackData.getPart();
+        int level = callbackData.getLevel();
 
         if (level >= part.grade().getUpgrades().size() + 1) {
-            setText(getLocalizedMessage(LEVEL_ERROR, locale));
-            return;
+            return new Response(getLocalizedMessage(LEVEL_ERROR, locale));
         }
 
-        setText(getSparePartsText(part, level, locale));
-        setKeyboardMarkup(sparePartsMarkup(part, level, locale));
+        String text = getSparePartsText(part, level, locale);
+        InlineKeyboardMarkup keyboard = sparePartsMarkup(part, level, locale);
+        return new Response(text, keyboard);
     }
 
     private static String getSparePartsText(Part part, int level, String locale) {

@@ -2,9 +2,11 @@ package com.lucky.bot.telegram.response;
 
 import com.lucky.bot.part.type.PartType;
 import com.lucky.bot.telegram.response.callback.ActionCode;
+import com.lucky.bot.telegram.response.callback.CallbackData;
 import com.lucky.bot.telegram.response.callback.CallbackType;
 import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
 import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -15,21 +17,23 @@ import static com.lucky.bot.telegram.response.callback.CallbackType.MENU;
 import static com.lucky.bot.util.Util.*;
 import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
+@Component
 public class LanguageResponse extends BaseResponseHandler {
     private static final String LANGUAGE_RESPONSE_PATTERN = "    %s%n%n%s";
     private static final String BACK_TO_LANGUAGE_SELECTION = "back_to_language";
     private static final String SET_LOCALE = "set_locale";
 
-    public LanguageResponse(CallbackType callbackType) {
-        super(callbackType);
+    public LanguageResponse() {
+        super(CallbackType.LANGUAGE);
     }
 
     @Override
-    public void respond() {
-        String locale = getCallbackData().getLocale();
+    public Response respond(CallbackData callbackData) {
+        String locale = callbackData.getLocale();
 
-        setText(getTypeText(locale));
-        setKeyboardMarkup(selectPartTypeMarkup(locale));
+        String text = getTypeText(locale);
+        InlineKeyboardMarkup keyboard = selectPartTypeMarkup(locale);
+        return new Response(text, keyboard);
     }
 
     private static String getTypeText(String locale) {

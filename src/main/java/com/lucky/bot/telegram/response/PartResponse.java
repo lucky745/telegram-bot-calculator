@@ -2,9 +2,11 @@ package com.lucky.bot.telegram.response;
 
 import com.lucky.bot.part.Part;
 import com.lucky.bot.telegram.response.callback.ActionCode;
+import com.lucky.bot.telegram.response.callback.CallbackData;
 import com.lucky.bot.telegram.response.callback.CallbackType;
 import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
 import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -16,20 +18,22 @@ import static com.lucky.bot.telegram.response.PartTypeResponse.callbackDataChoos
 import static com.lucky.bot.util.Util.*;
 import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
+@Component
 public class PartResponse extends BaseResponseHandler {
     private static final String BACK_TO_PARTS_SELECTION = "back_to_parts";
 
-    public PartResponse(CallbackType callbackType) {
-        super(callbackType);
+    public PartResponse() {
+        super(CallbackType.PART);
     }
 
     @Override
-    public void respond() {
-        String locale = getCallbackData().getLocale();
-        Part part = getCallbackData().getPart();
+    public Response respond(CallbackData callbackData) {
+        String locale = callbackData.getLocale();
+        Part part = callbackData.getPart();
 
-        setText(getLevelText(part, locale));
-        setKeyboardMarkup(selectLevelMarkup(part, locale));
+        String text = getLevelText(part, locale);
+        InlineKeyboardMarkup keyboard = selectLevelMarkup(part, locale);
+        return new Response(text, keyboard);
     }
 
     private static String getLevelText(Part part, String locale) {

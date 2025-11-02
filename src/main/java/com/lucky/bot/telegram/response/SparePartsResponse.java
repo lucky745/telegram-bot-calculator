@@ -1,15 +1,19 @@
 package com.lucky.bot.telegram.response;
 
 import com.lucky.bot.part.Part;
+import com.lucky.bot.telegram.response.callback.CallbackData;
 import com.lucky.bot.telegram.response.callback.CallbackType;
 import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
 import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.List;
 
 import static com.lucky.bot.telegram.response.LanguageResponse.selectPartTypeMarkup;
 import static com.lucky.bot.util.Util.*;
 
+@Component
 public class SparePartsResponse extends BaseResponseHandler {
     private static final String TOKEN = "\uD83D\uDFE1";
     private static final String CALCULATOR = "calculator";
@@ -18,25 +22,24 @@ public class SparePartsResponse extends BaseResponseHandler {
     private static final String POSSIBLE_UPGRADE_PATTERN = "   ⋆ %s: %d [%s]%n%s   ⋆ %s: %,d\uD83D\uDCB5 %s%n➖➖➖➖➖➖➖➖➖➖%n";
     private static final String SLASH = "/";
 
-    public SparePartsResponse(CallbackType callbackType) {
-        super(callbackType);
+    public SparePartsResponse() {
+        super(CallbackType.SPARE);
     }
 
     @Override
-    public void respond() {
-        String locale = getCallbackData().getLocale();
-        Part part = getCallbackData().getPart();
-        int level = getCallbackData().getLevel();
-        int spare = getCallbackData().getSpare();
+    public Response respond(CallbackData callbackData) {
+        String locale = callbackData.getLocale();
+        Part part = callbackData.getPart();
+        int level = callbackData.getLevel();
+        int spare = callbackData.getSpare();
 
         if (spare < part.grade().getUpgrades().get(level - 1).parts()) {
-            setText(getLocalizedMessage(UPGRADE_IMPOSSIBLE, locale));
-            return;
+            return new Response(getLocalizedMessage(UPGRADE_IMPOSSIBLE, locale));
         }
 
-        setText(getCalculatedPartsText(part, level, spare, locale));
-        setKeyboardMarkup(selectPartTypeMarkup(locale));
-        setToCalculate(true);
+        String text = getCalculatedPartsText(part, level, spare, locale);
+        InlineKeyboardMarkup keyboard = selectPartTypeMarkup(locale);
+        return new Response(text, keyboard);
     }
 
     private static String getCalculatedPartsText(Part part, int level, int spare, String locale) {

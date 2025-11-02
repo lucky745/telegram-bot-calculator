@@ -21,7 +21,7 @@ public class BotConfig {
     private String botUsername;
 
     @Bean
-    public Bot bot() {
-        return new Bot(new OkHttpTelegramClient(botToken), botUsername, new PartCalculatorResponseProcessor());
+    public Bot bot(PartCalculatorResponseProcessor processor) {
+        return new Bot(new OkHttpTelegramClient(botToken), botUsername, processor);
     }
 }

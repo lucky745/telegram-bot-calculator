@@ -1,7 +1,11 @@
 package com.lucky.bot.telegram.response.handler;
 
-public interface ResponseHandler {
-    boolean canRespond(String jsonData);
+import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.telegram.response.callback.CallbackData;
+import com.lucky.bot.telegram.response.callback.CallbackType;
 
-    void respond();
+public interface ResponseHandler {
+    boolean canRespond(CallbackType callbackType);
+
+    Response respond(CallbackData callbackData);
 }

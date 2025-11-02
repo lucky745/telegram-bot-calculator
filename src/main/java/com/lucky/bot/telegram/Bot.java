@@ -1,6 +1,8 @@
 package com.lucky.bot.telegram;
 
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
+import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.telegram.response.callback.CallbackData;
+import com.lucky.bot.telegram.response.callback.CallbackType;
 import com.lucky.bot.telegram.response.processor.PartCalculatorResponseProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,30 +98,32 @@ public class Bot extends AbilityBot {
     }
 
     private void handleReplyToCallbackQuery(Update upd) {
-        BaseResponseHandler response = processor.processResponse(getCallbackData(upd));
-        execute(editMessageText(upd, response), getCallbackQueryId(upd));
-        if (response.isToCalculate()) {
+        CallbackData callbackData = new CallbackData(getCallbackData(upd));
+
+        if (callbackData.getCallbackType() == CallbackType.SPARE) {
             UsageStats.incrementUsage(getDb(), getChatId(upd));
+        }
+
+        execute(upd, processor.processResponse(callbackData));
+    }
+
+    private void execute(Update upd, Response response) {
+        if (response.keyboard() == null) {
+            silent.execute(simpleCallbackAnswer(getCallbackQueryId(upd), response.text(), true));
+        } else {
+            silent.execute(simpleCallbackAnswer(getCallbackQueryId(upd)));
+            silent.execute(editMessageText(upd, response));
         }
     }
 
-    private EditMessageText editMessageText(Update upd, BaseResponseHandler response) {
+    private EditMessageText editMessageText(Update upd, Response response) {
         return EditMessageText.builder()
                 .chatId(getChatId(upd))
                 .messageId(getMessageId(upd))
-                .text(response.getText())
-                .replyMarkup(response.getKeyboardMarkup())
+                .text(response.text())
+                .replyMarkup(response.keyboard())
                 .parseMode(HTML)
                 .build();
-    }
-
-    private void execute(EditMessageText emsg, String callbackQueryId) {
-        if (emsg.getReplyMarkup() == null) {
-            silent.execute(simpleCallbackAnswer(callbackQueryId, emsg.getText(), true));
-        } else {
-            silent.execute(simpleCallbackAnswer(callbackQueryId));
-            silent.execute(emsg);
-        }
     }
 
     private AnswerCallbackQuery simpleCallbackAnswer(String callbackQueryId) {
