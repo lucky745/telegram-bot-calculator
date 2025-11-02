@@ -16,13 +16,10 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static com.lucky.bot.telegram.response.MenuResponse.chooseLanguageMarkup;
 import static com.lucky.bot.util.Util.*;
-import static java.lang.String.format;
 import static org.telegram.telegrambots.abilitybots.api.objects.Flag.CALLBACK_QUERY;
 import static org.telegram.telegrambots.abilitybots.api.objects.Locality.USER;
 import static org.telegram.telegrambots.abilitybots.api.objects.Privacy.CREATOR;
@@ -34,8 +31,6 @@ public class Bot extends AbilityBot {
     public static final String START = "start";
     public static final String COUNT = "count";
     public static final String CALLBACK_STATS = "callback";
-    public static final String USAGE_COUNT_MAP = "COUNTERS";
-    public static final String INLINE_USER_PATTERN = "[%d](tg://user?id=%d)";
     private static final String NOTIFICATION = "Bot has been successfully started.";
 
     @Value("${bot.creator-id}")
@@ -76,7 +71,13 @@ public class Bot extends AbilityBot {
                 .locality(USER)
                 .privacy(PUBLIC)
                 .setStatsEnabled(true)
-                .action(ctx -> handleReplyToStart(ctx.chatId()))
+                .action(ctx -> silent.execute(SendMessage.builder()
+                        .chatId(ctx.chatId())
+                        .text(CONVERSATION_START_MESSAGE)
+                        .parseMode(MARKDOWN)
+                        .replyMarkup(chooseLanguageMarkup())
+                        .build()
+                ))
                 .build();
     }
 
@@ -85,7 +86,7 @@ public class Bot extends AbilityBot {
                 .name(COUNT)
                 .locality(USER)
                 .privacy(CREATOR)
-                .action(ctx -> handleReplyToUsageCount())
+                .action(ctx -> silent.sendMd(UsageStats.handleUsageCount(getDb()), creatorId()))
                 .build();
     }
 
@@ -94,28 +95,12 @@ public class Bot extends AbilityBot {
         return Reply.of(action, CALLBACK_QUERY).enableStats(CALLBACK_STATS);
     }
 
-    private void handleReplyToStart(long chatId) {
-        silent.execute(SendMessage.builder()
-                .chatId(chatId)
-                .text(CONVERSATION_START_MESSAGE)
-                .parseMode(MARKDOWN)
-                .replyMarkup(chooseLanguageMarkup())
-                .build()
-        );
-    }
-
-    private void handleReplyToUsageCount() {
-        Map<Long, Integer> countMap = db.getMap(USAGE_COUNT_MAP);
-        String counters = countMap.entrySet().stream()
-                .map(entry -> format(INLINE_USER_PATTERN, entry.getValue(), entry.getKey()))
-                .collect(Collectors.joining(NEW_LINE));
-        silent.sendMd(counters, creatorId());
-    }
-
     private void handleReplyToCallbackQuery(Update upd) {
         BaseResponseHandler response = processor.processResponse(getCallbackData(upd));
         execute(editMessageText(upd, response), getCallbackQueryId(upd));
-        countCalculatorUsage(response.isToCalculate(), getChatId(upd));
+        if (response.isToCalculate()) {
+            UsageStats.incrementUsage(getDb(), getChatId(upd));
+        }
     }
 
     private EditMessageText editMessageText(Update upd, BaseResponseHandler response) {
@@ -148,13 +133,6 @@ public class Bot extends AbilityBot {
                 .showAlert(alert)
                 .text(text)
                 .build();
-    }
-
-    private void countCalculatorUsage(boolean isReplyToCalculate, long userId) {
-        if (isReplyToCalculate) {
-            Map<Long, Integer> countMap = db.getMap(USAGE_COUNT_MAP);
-            countMap.compute(userId, (id, count) -> count == null ? 1 : ++count);
-        }
     }
 
     private static String getCallbackData(Update upd) {
