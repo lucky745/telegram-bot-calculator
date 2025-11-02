@@ -14,6 +14,8 @@ import static java.lang.String.format;
 @Slf4j
 @Component
 public final class UsageStats {
+    public static final int TOP_LIFETIME_LIMIT = 25;
+    public static final int TOP_DAILY_LIMIT = 15;
     public static final String USAGE_COUNT_MAP = "USAGE_COUNT";
     public static final String DAILY_GROWTH_MAP = "DAILY_GROWTH";
     public static final String NO_ACTIVITY_YET = "📭 No activity yet";
@@ -38,10 +40,10 @@ public final class UsageStats {
 
     public static void incrementUsage(DBContext db, long userId) {
         Map<Long, Integer> lifetimeUsage = db.getMap(USAGE_COUNT_MAP);
-        lifetimeUsage.compute(userId, (id, count) -> count == null ? 1 : ++count);
+        lifetimeUsage.merge(userId, 1, Integer::sum);
 
         Map<Long, Integer> dailyGrowth = db.getMap(DAILY_GROWTH_MAP);
-        dailyGrowth.compute(userId, (id, count) -> count == null ? 1 : ++count);
+        dailyGrowth.merge(userId, 1, Integer::sum);
     }
 
     public static String handleUsageCount(DBContext db) {
@@ -98,8 +100,8 @@ public final class UsageStats {
                 totalUsers,
                 dailyTotal,
                 dailyUsers,
-                getTopUsers(lifetimeUsage, 25),
-                getTopUsers(dailyGrowth, 15)
+                getTopUsers(lifetimeUsage, TOP_LIFETIME_LIMIT),
+                getTopUsers(dailyGrowth, TOP_DAILY_LIMIT)
         );
     }
 
