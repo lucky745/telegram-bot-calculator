@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -19,10 +20,25 @@ import java.io.PrintStream;
 @Slf4j
 @Component
 @EnableScheduling
-public class DailySchedulerConfig {
+public class SchedulerConfig {
 
     @Autowired
     private Bot bot;
+
+    @Scheduled(fixedRate = 300000)
+    public void healthCheckKeepAlive() {
+        try {
+            bot.getSilent().execute(new GetMe());
+
+            Runtime runtime = Runtime.getRuntime();
+            long usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
+            long maxMemory = runtime.maxMemory() / (1024 * 1024);
+
+            log.info("Bot healthy | Memory: {}MB/{}MB", usedMemory, maxMemory);
+        } catch (Exception e) {
+            log.error("Health check failed: {}", e.getMessage());
+        }
+    }
 
     @Scheduled(cron = "@daily")
     public void sendDailyUsageReport() {
