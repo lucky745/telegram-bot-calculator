@@ -40,13 +40,13 @@
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
-            <artifactId>telegrambots-abilities</artifactId>
-            <version>9.1.0</version>
+            <artifactId>telegrambots-longpolling</artifactId>
+            <version>9.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-client</artifactId>
-            <version>9.1.0</version>
+            <version>9.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

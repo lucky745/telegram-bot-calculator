@@ -1,8 +1,7 @@
-package com.lucky.bot.telegram;
+package com.lucky.bot.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.abilitybots.api.db.DBContext;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -37,7 +36,7 @@ public final class UsageStats {
             🏆 **Top Users Today:**
             %s
             """;
-
+/*todo
     public static void incrementUsage(DBContext db, long userId) {
         Map<Long, Integer> lifetimeUsage = db.getMap(USAGE_COUNT_MAP);
         lifetimeUsage.merge(userId, 1, Integer::sum);
@@ -77,7 +76,7 @@ public final class UsageStats {
         Map<Long, Integer> dailyGrowth = db.getMap(DAILY_GROWTH_MAP);
         dailyGrowth.clear();
         log.info("Daily growth counters reset");
-    }
+    }*/
 
     private static String getTopUsers(Map<Long, Integer> usageMap, int limit) {
         if (usageMap.isEmpty()) {

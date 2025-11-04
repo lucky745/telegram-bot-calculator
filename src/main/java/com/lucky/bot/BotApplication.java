@@ -18,7 +18,7 @@ public class BotApplication {
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
             Bot bot = ctx.getBean(Bot.class);
             bot.onRegister();
-            botsApplication.registerBot(ctx.getBean(BotConfig.class).getBotToken(), bot);
+            botsApplication.registerBot(ctx.getBean(BotConfig.class).getToken(), bot);
             Thread.currentThread().join();
         } catch (Exception e) {
             log.error(e.getMessage());

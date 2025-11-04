@@ -1,7 +1,6 @@
 package com.lucky.bot.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import com.lucky.bot.config.LocalizationConfig;
 import com.lucky.bot.part.Part;
 import com.lucky.bot.part.grade.PartGrade;
@@ -11,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -308,7 +308,7 @@ public final class Util {
     }
 
     public static String getLocalizedMessage(String key, String language) {
-        Locale locale = Strings.isNullOrEmpty(language) ? Locale.ENGLISH : Locale.forLanguageTag(language);
+        Locale locale = StringUtils.isEmpty(language) ? Locale.ENGLISH : Locale.forLanguageTag(language);
         return LocalizationConfig.messageSource().getMessage(key, null, locale);
     }
 

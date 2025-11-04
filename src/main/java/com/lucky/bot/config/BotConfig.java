@@ -1,27 +1,55 @@
 package com.lucky.bot.config;
 
-import com.lucky.bot.telegram.Bot;
-import com.lucky.bot.telegram.response.processor.PartCalculatorResponseProcessor;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
+@Setter
 @Component
-@Configuration
+@ConfigurationProperties(prefix = "bot")
 public class BotConfig {
-
-    @Value("${bot.token}")
-    private String botToken;
-
-    @Value("${bot.name}")
-    private String botUsername;
+    private String token;
+    private String name;
+    private List<Long> adminIds = new ArrayList<>();
 
     @Bean
-    public Bot bot(PartCalculatorResponseProcessor processor) {
-        return new Bot(new OkHttpTelegramClient(botToken), botUsername, processor);
+    public TelegramClient telegramClient() {
+        return new OkHttpTelegramClient(token);
+    }
+
+    @Bean
+    public Executor botUpdateExecutor() {
+        int corePoolSize = Runtime.getRuntime().availableProcessors() * 2;
+        int maxPoolSize = corePoolSize * 2;
+
+        return new ThreadPoolExecutor(
+                corePoolSize,
+                maxPoolSize,
+                60L, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(1000),
+                new ThreadFactory() {
+                    private final AtomicInteger threadCount = new AtomicInteger(1);
+
+                    @Override
+                    public Thread newThread(@NotNull Runnable r) {
+                        Thread thread = new Thread(r);
+                        thread.setName("bot-update-" + threadCount.getAndIncrement());
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                },
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
     }
 }

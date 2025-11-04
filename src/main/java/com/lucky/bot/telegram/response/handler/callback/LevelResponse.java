@@ -1,22 +1,19 @@
-package com.lucky.bot.telegram.response;
+package com.lucky.bot.telegram.response.handler.callback;
 
 import com.lucky.bot.part.Part;
-import com.lucky.bot.telegram.response.callback.CallbackData;
-import com.lucky.bot.telegram.response.callback.CallbackType;
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
-import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.util.TemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
-import static com.lucky.bot.telegram.response.EditSparePartsResponse.callbackDataEditSpareParts;
-import static com.lucky.bot.telegram.response.PartGradeResponse.callbackDataChoosePart;
+import static com.lucky.bot.telegram.response.handler.callback.EditSparePartsResponse.callbackDataEditSpareParts;
+import static com.lucky.bot.telegram.response.handler.callback.PartGradeResponse.callbackDataChoosePart;
 import static com.lucky.bot.util.Util.*;
-import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
 @Component
-public class LevelResponse extends BaseResponseHandler {
+public class LevelResponse extends BaseCallbackHandler {
     private static final String LEVEL_ERROR = "level_error";
     private static final String BACK_TO_LEVEL_SELECTION = "back_to_level";
 
@@ -25,7 +22,7 @@ public class LevelResponse extends BaseResponseHandler {
     }
 
     @Override
-    public Response respond(CallbackData callbackData) {
+    public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();
         Part part = callbackData.getPart();
         int level = callbackData.getLevel();

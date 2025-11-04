@@ -1,15 +1,13 @@
-package com.lucky.bot.telegram.response;
+package com.lucky.bot.telegram.response.handler.callback;
 
-import com.lucky.bot.telegram.response.callback.CallbackData;
-import com.lucky.bot.telegram.response.callback.CallbackType;
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
+import com.lucky.bot.telegram.response.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import static com.lucky.bot.util.Util.getLocalizedMessage;
 
 @Component
-public class OldMessageResponse extends BaseResponseHandler {
+public class OldMessageResponse extends BaseCallbackHandler {
     private static final String OLD_MESSAGE = "old_message";
 
     public OldMessageResponse() {
@@ -18,7 +16,7 @@ public class OldMessageResponse extends BaseResponseHandler {
 
     @Cacheable(value = "old", key = "#callbackData.locale()")
     @Override
-    public Response respond(CallbackData callbackData) {
+    public Response handle(CallbackData callbackData) {
         return new Response(getLocalizedMessage(OLD_MESSAGE, callbackData.getLocale()));
     }
 }

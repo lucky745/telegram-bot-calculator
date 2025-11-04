@@ -1,20 +1,22 @@
-package com.lucky.bot.telegram.response.callback;
+package com.lucky.bot.telegram.response.handler.callback;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Strings;
 import com.lucky.bot.part.Part;
 import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.type.PartType;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.lucky.bot.telegram.response.callback.ActionCode.GRADE;
-import static com.lucky.bot.telegram.response.callback.ActionCode.TYPE;
-import static com.lucky.bot.telegram.response.callback.ActionCode.*;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.GRADE;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.TYPE;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.*;
 import static com.lucky.bot.util.Util.*;
 
 @Slf4j
@@ -29,9 +31,12 @@ public class CallbackData {
     private final Part part;
     private final int level;
     private final int spare;
+    private final User user;
 
     @SneakyThrows
-    public CallbackData(String jsonData) {
+    public CallbackData(Update update) {
+        user = update.getCallbackQuery().getFrom();
+        String jsonData = update.getCallbackQuery().getData();
         Map<String, String> callbackData;
         if (jsonData.contains(OLD_CALLBACK_DATA)) {
             callbackData = new HashMap<>();
@@ -49,10 +54,10 @@ public class CallbackData {
         String grade = callbackData.get(GRADE.getCode());
         partGrade = PartGrade.from(grade).orElse(null);
         String partId = callbackData.get(PART.getCode());
-        part = Strings.isNullOrEmpty(partId) ? null : getPartById(Integer.parseInt(partId));
+        part = StringUtils.isEmpty(partId) ? null : getPartById(Integer.parseInt(partId));
         String lvl = callbackData.get(LEVEL.getCode());
-        level = Strings.isNullOrEmpty(lvl) ? 0 : Integer.parseInt(lvl);
+        level = StringUtils.isEmpty(lvl) ? 0 : Integer.parseInt(lvl);
         String spareParts = callbackData.get(SPARE_PART.getCode());
-        spare = Strings.isNullOrEmpty(spareParts) ? 0 : Integer.parseInt(spareParts);
+        spare = StringUtils.isEmpty(spareParts) ? 0 : Integer.parseInt(spareParts);
     }
 }
