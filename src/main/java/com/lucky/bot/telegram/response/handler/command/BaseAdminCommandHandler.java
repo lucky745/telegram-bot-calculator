@@ -1,7 +1,13 @@
 package com.lucky.bot.telegram.response.handler.command;
 
-public abstract class BaseAdminCommandHandler extends BaseCommandHandler implements AdminCommandHandler {
-    public BaseAdminCommandHandler(Command command) {
-        super(command);
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public abstract class BaseAdminCommandHandler implements AdminCommandHandler {
+    private final Command command;
+
+    @Override
+    public boolean canHandle(CommandData commandData) {
+        return commandData.message().getText().contains(command.name().toLowerCase());
     }
 }

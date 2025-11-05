@@ -2,6 +2,7 @@ package com.lucky.bot.telegram.response.handler.callback;
 
 import com.lucky.bot.part.Part;
 import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.util.AsyncUsageTracker;
 import com.lucky.bot.util.TemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -20,8 +21,11 @@ public class SparePartsResponse extends BaseCallbackHandler {
     private static final String POSSIBLE_UPGRADE_PATTERN = "   ⋆ %s: %d [%s]%n%s   ⋆ %s: %,d\uD83D\uDCB5 %s%n➖➖➖➖➖➖➖➖➖➖%n";
     private static final String SLASH = "/";
 
-    public SparePartsResponse() {
+    private final AsyncUsageTracker usageTracker;
+
+    public SparePartsResponse(AsyncUsageTracker usageTracker) {
         super(CallbackType.SPARE);
+        this.usageTracker = usageTracker;
     }
 
     @Override
@@ -30,6 +34,9 @@ public class SparePartsResponse extends BaseCallbackHandler {
         Part part = callbackData.getPart();
         int level = callbackData.getLevel();
         int spare = callbackData.getSpare();
+        long userId = callbackData.getUser().getId();
+
+        usageTracker.trackUsageAsync(userId, part.name(), level);
 
         if (spare < part.grade().getUpgrades().get(level - 1).parts()) {
             return new Response(getLocalizedMessage(UPGRADE_IMPOSSIBLE, locale));

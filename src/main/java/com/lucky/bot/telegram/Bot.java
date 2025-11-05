@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class Bot extends LongPollingAsyncUpdateConsumer {
-    private static final String NOTIFICATION = "Bot has been successfully started.";
+    private static final String NOTIFICATION = "Bot has been successfully started";
     private final SilentSender sender;
     private final List<UpdateHandler> handlers;
 

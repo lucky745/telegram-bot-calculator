@@ -1,6 +1,7 @@
 package com.lucky.bot.telegram.handler;
 
 import com.lucky.bot.telegram.response.Response;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -13,12 +14,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 import static com.lucky.bot.util.Util.HTML;
 import static com.lucky.bot.util.Util.MARKDOWN;
 
 @Slf4j
+@Getter
 @Component
 public class SilentSender {
     private final TelegramClient telegramClient;
@@ -27,18 +28,21 @@ public class SilentSender {
         this.telegramClient = telegramClient;
     }
 
-    public <T extends Serializable, Method extends BotApiMethod<T>> Optional<T> execute(Method method) {
+    public <T extends Serializable> void execute(BotApiMethod<T> method) {
         try {
-            return Optional.ofNullable(telegramClient.execute(method));
+            telegramClient.execute(method);
         } catch (TelegramApiException e) {
             log.error("Could not execute bot API method", e);
-            return Optional.empty();
         }
     }
 
     public <T extends Serializable> void executeAsync(BotApiMethod<T> method) {
         try {
-            telegramClient.executeAsync(method);
+            telegramClient.executeAsync(method)
+                    .exceptionally(ex -> {
+                        log.error("Async execution failed: {}", ex.getMessage());
+                        return null;
+                    });
         } catch (TelegramApiException e) {
             log.error("Synchronous execution failed: {}", e.getMessage());
         }
