@@ -1,13 +1,10 @@
-package com.lucky.bot.telegram.response;
+package com.lucky.bot.telegram.response.handler.callback;
 
 import com.lucky.bot.part.Part;
 import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.type.PartType;
-import com.lucky.bot.telegram.response.callback.ActionCode;
-import com.lucky.bot.telegram.response.callback.CallbackData;
-import com.lucky.bot.telegram.response.callback.CallbackType;
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
-import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.util.TemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -18,12 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.lucky.bot.telegram.response.LanguageResponse.callbackDataChoosePartType;
+import static com.lucky.bot.telegram.response.handler.callback.LanguageResponse.callbackDataChoosePartType;
 import static com.lucky.bot.util.Util.*;
-import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
 @Component
-public class PartGradeResponse extends BaseResponseHandler {
+public class PartGradeResponse extends BaseCallbackHandler {
     private static final String LIST_EMPTY = "list_empty";
     private static final String BACK_TO_GRADE_SELECTION = "back_to_grades";
 
@@ -34,7 +30,7 @@ public class PartGradeResponse extends BaseResponseHandler {
     @Cacheable(value = "partGrade",
             key = "#callbackData.locale() + ':' + #callbackData.partType() + ':' + #callbackData.partGrade")
     @Override
-    public Response respond(CallbackData callbackData) {
+    public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();
         PartType partType = callbackData.getPartType();
         PartGrade partGrade = callbackData.getPartGrade();

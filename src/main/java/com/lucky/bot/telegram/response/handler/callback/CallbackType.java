@@ -1,4 +1,4 @@
-package com.lucky.bot.telegram.response.callback;
+package com.lucky.bot.telegram.response.handler.callback;
 
 import lombok.Getter;
 

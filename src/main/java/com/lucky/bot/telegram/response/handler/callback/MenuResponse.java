@@ -1,9 +1,6 @@
-package com.lucky.bot.telegram.response;
+package com.lucky.bot.telegram.response.handler.callback;
 
-import com.lucky.bot.telegram.response.callback.ActionCode;
-import com.lucky.bot.telegram.response.callback.CallbackData;
-import com.lucky.bot.telegram.response.callback.CallbackType;
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
+import com.lucky.bot.telegram.response.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -12,11 +9,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.Map;
 
-import static com.lucky.bot.telegram.response.callback.CallbackType.LANGUAGE;
+import static com.lucky.bot.telegram.response.handler.callback.CallbackType.LANGUAGE;
 import static com.lucky.bot.util.Util.*;
 
 @Component
-public class MenuResponse extends BaseResponseHandler {
+public class MenuResponse extends BaseCallbackHandler {
     private static final String ENG = "English 🇬🇧";
     private static final String RUS = "Русский 🇷🇺";
 
@@ -26,7 +23,7 @@ public class MenuResponse extends BaseResponseHandler {
 
     @Cacheable(value = "menu", key = "#callbackData.locale()")
     @Override
-    public Response respond(CallbackData callbackData) {
+    public Response handle(CallbackData callbackData) {
         return new Response(CONVERSATION_START_MESSAGE, chooseLanguageMarkup());
     }
 

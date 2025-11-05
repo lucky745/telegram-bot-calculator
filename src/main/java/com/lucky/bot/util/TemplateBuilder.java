@@ -1,4 +1,4 @@
-package com.lucky.bot.telegram.response.template;
+package com.lucky.bot.util;
 
 import org.springframework.stereotype.Component;
 

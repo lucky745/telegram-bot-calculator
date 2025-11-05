@@ -9,3 +9,5 @@ bot:
   name: ${BOT_NAME:}
   token: ${BOT_TOKEN:}
   creator-id: ${CREATOR_ID:}
+  admin-ids:
+    - ${CREATOR_ID:}

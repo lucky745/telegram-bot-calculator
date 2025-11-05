@@ -1,12 +1,9 @@
-package com.lucky.bot.telegram.response;
+package com.lucky.bot.telegram.response.handler.callback;
 
 import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.type.PartType;
-import com.lucky.bot.telegram.response.callback.ActionCode;
-import com.lucky.bot.telegram.response.callback.CallbackData;
-import com.lucky.bot.telegram.response.callback.CallbackType;
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
-import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.util.TemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -15,12 +12,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.Map;
 
-import static com.lucky.bot.telegram.response.MenuResponse.callbackDataChooseLanguage;
+import static com.lucky.bot.telegram.response.handler.callback.MenuResponse.callbackDataChooseLanguage;
 import static com.lucky.bot.util.Util.*;
-import static org.telegram.telegrambots.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 
 @Component
-public class PartTypeResponse extends BaseResponseHandler {
+public class PartTypeResponse extends BaseCallbackHandler {
     private static final String BACK_TO_PART_TYPE_SELECTION = "back_to_part_type";
 
     public PartTypeResponse() {
@@ -29,7 +25,7 @@ public class PartTypeResponse extends BaseResponseHandler {
 
     @Cacheable(value = "partGrade", key = "#callbackData.locale() + ':' + #callbackData.partType()")
     @Override
-    public Response respond(CallbackData callbackData) {
+    public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();
         PartType partType = callbackData.getPartType();
 

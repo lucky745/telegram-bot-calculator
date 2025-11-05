@@ -1,0 +1,13 @@
+package com.lucky.bot.telegram.response.handler.command;
+
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public abstract class BaseCommandHandler implements UserCommandHandler {
+    private final Command command;
+
+    @Override
+    public boolean canHandle(CommandData commandData) {
+        return commandData.message().getText().contains(command.name().toLowerCase());
+    }
+}

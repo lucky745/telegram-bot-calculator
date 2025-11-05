@@ -1,20 +1,19 @@
-package com.lucky.bot.telegram.response;
+package com.lucky.bot.telegram.response.handler.callback;
 
 import com.lucky.bot.part.Part;
-import com.lucky.bot.telegram.response.callback.CallbackData;
-import com.lucky.bot.telegram.response.callback.CallbackType;
-import com.lucky.bot.telegram.response.handler.BaseResponseHandler;
-import com.lucky.bot.telegram.response.template.TemplateBuilder;
+import com.lucky.bot.telegram.response.Response;
+import com.lucky.bot.util.AsyncUsageTracker;
+import com.lucky.bot.util.TemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.List;
 
-import static com.lucky.bot.telegram.response.LanguageResponse.selectPartTypeMarkup;
+import static com.lucky.bot.telegram.response.handler.callback.LanguageResponse.selectPartTypeMarkup;
 import static com.lucky.bot.util.Util.*;
 
 @Component
-public class SparePartsResponse extends BaseResponseHandler {
+public class SparePartsResponse extends BaseCallbackHandler {
     private static final String TOKEN = "\uD83D\uDFE1";
     private static final String CALCULATOR = "calculator";
     private static final String UPGRADE_IMPOSSIBLE = "upgrade_impossible";
@@ -22,16 +21,22 @@ public class SparePartsResponse extends BaseResponseHandler {
     private static final String POSSIBLE_UPGRADE_PATTERN = "   ⋆ %s: %d [%s]%n%s   ⋆ %s: %,d\uD83D\uDCB5 %s%n➖➖➖➖➖➖➖➖➖➖%n";
     private static final String SLASH = "/";
 
-    public SparePartsResponse() {
+    private final AsyncUsageTracker usageTracker;
+
+    public SparePartsResponse(AsyncUsageTracker usageTracker) {
         super(CallbackType.SPARE);
+        this.usageTracker = usageTracker;
     }
 
     @Override
-    public Response respond(CallbackData callbackData) {
+    public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();
         Part part = callbackData.getPart();
         int level = callbackData.getLevel();
         int spare = callbackData.getSpare();
+        long userId = callbackData.getUser().getId();
+
+        usageTracker.trackUsageAsync(userId, part.name(), level);
 
         if (spare < part.grade().getUpgrades().get(level - 1).parts()) {
             return new Response(getLocalizedMessage(UPGRADE_IMPOSSIBLE, locale));
