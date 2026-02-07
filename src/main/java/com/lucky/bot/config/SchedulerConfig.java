@@ -30,7 +30,7 @@ public class SchedulerConfig {
             long usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
             long maxMemory = runtime.maxMemory() / (1024 * 1024);
 
-            log.info("Bot healthy | Memory: {}MB/{}MB", usedMemory, maxMemory);
+            log.debug("Bot healthy | Memory: {}MB/{}MB", usedMemory, maxMemory);
         } catch (Exception e) {
             log.error("Health check failed: {}", e.getMessage());
         }

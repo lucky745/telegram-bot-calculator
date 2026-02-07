@@ -12,3 +12,8 @@ bot:
   creator-id: ${CREATOR_ID:}
   admin-ids:
     - ${CREATOR_ID:}
+logging:
+  level:
+    root: INFO
+    com.lucky.bot: INFO
+    org.telegram: WARN
