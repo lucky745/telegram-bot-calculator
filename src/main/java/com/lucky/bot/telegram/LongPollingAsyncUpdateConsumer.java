@@ -6,17 +6,29 @@ import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsume
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public abstract class LongPollingAsyncUpdateConsumer implements LongPollingUpdateConsumer {
 
     @Autowired
-    protected Executor botUpdateExecutor;
+    protected ExecutorService botUpdateExecutor;
+
+    private final AtomicInteger maxUpdateIdSeen = new AtomicInteger(-1);
 
     @Override
     public void consume(List<Update> updates) {
-        updates.forEach(update -> {
+        for (Update update : updates) {
+            int updateId = update.getUpdateId();
+            int lastSeen = maxUpdateIdSeen.get();
+
+            if (updateId <= lastSeen) {
+                log.debug("Skipping duplicate/replayed updateId={}", updateId);
+                continue;
+            }
+            maxUpdateIdSeen.accumulateAndGet(updateId, Math::max);
+
             botUpdateExecutor.execute(() -> {
                 try {
                     this.consume(update);
@@ -24,7 +36,7 @@ public abstract class LongPollingAsyncUpdateConsumer implements LongPollingUpdat
                     log.error("Error processing update {}", update, e);
                 }
             });
-        });
+        }
     }
 
     public abstract void consume(Update update);

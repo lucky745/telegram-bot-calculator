@@ -14,7 +14,7 @@ public class OldMessageResponse extends BaseCallbackHandler {
         super(CallbackType.OLD);
     }
 
-    @Cacheable(value = "old", key = "#callbackData.locale()")
+    @Cacheable(value = "old", key = "#callbackData.getLocale()")
     @Override
     public Response handle(CallbackData callbackData) {
         return new Response(getLocalizedMessage(OLD_MESSAGE, callbackData.getLocale()));

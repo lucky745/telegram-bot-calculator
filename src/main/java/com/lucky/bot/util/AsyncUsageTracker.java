@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class AsyncUsageTracker {
     private final CalculatorUsageTracker usageTracker;
 
-    @Async
+    @Async("botTaskExecutor")
     public void trackUsageAsync(long userId, String partName, int level) {
         usageTracker.trackCalculations(userId, partName, level);
     }

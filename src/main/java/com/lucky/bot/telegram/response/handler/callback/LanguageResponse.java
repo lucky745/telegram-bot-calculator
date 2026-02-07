@@ -12,7 +12,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.Map;
 
 import static com.lucky.bot.telegram.response.handler.callback.CallbackType.MENU;
-import static com.lucky.bot.util.Util.*;
+import static com.lucky.bot.util.Util.QUESTION_MARK;
+import static com.lucky.bot.util.Util.TYPE;
+import static com.lucky.bot.util.Util.getLocalizedMessage;
+import static com.lucky.bot.util.Util.inlineKeyboardButton;
+import static com.lucky.bot.util.Util.inlineKeyboardMarkup;
 
 @Component
 public class LanguageResponse extends BaseCallbackHandler {
@@ -24,7 +28,7 @@ public class LanguageResponse extends BaseCallbackHandler {
         super(CallbackType.LANGUAGE);
     }
 
-    @Cacheable(value = "language", key = "#callbackData.locale()")
+    @Cacheable(value = "language", key = "#callbackData.getLocale()")
     @Override
     public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();

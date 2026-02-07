@@ -4,7 +4,6 @@ import com.lucky.bot.telegram.response.Response;
 import com.lucky.bot.telegram.response.handler.callback.CallbackData;
 import com.lucky.bot.telegram.response.handler.callback.CallbackHandler;
 import com.lucky.bot.telegram.response.handler.command.AdminCommandHandler;
-import com.lucky.bot.telegram.response.handler.command.AdminFileCommandHandler;
 import com.lucky.bot.telegram.response.handler.command.CommandData;
 import com.lucky.bot.telegram.response.handler.command.UserCommandHandler;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ public class PartCalculatorResponseProcessor {
     private final List<CallbackHandler> callbackHandlers;
     private final List<UserCommandHandler> userCommandHandlers;
     private final List<AdminCommandHandler> adminCommandHandlers;
-    private final List<AdminFileCommandHandler> adminFileCommandHandlers;
 
     public Response processCallback(CallbackData callbackData) {
         return callbackHandlers.stream()
@@ -42,13 +40,5 @@ public class PartCalculatorResponseProcessor {
                 .findFirst()
                 .map(handler -> handler.handle(commandData))
                 .orElse(processUserCommand(commandData));
-    }
-
-    public Response processAdminFileCommand(CommandData commandData) {
-        return adminFileCommandHandlers.stream()
-                .filter(handler -> handler.canHandle(commandData))
-                .findFirst()
-                .map(handler -> handler.handle(commandData))
-                .orElse(null);
     }
 }

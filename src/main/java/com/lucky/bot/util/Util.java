@@ -1,21 +1,30 @@
 package com.lucky.bot.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lucky.bot.config.LocalizationConfig;
 import com.lucky.bot.part.Part;
 import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.grade.Upgrade;
-import com.lucky.bot.part.type.*;
+import com.lucky.bot.part.type.Chassis;
+import com.lucky.bot.part.type.Gadget;
+import com.lucky.bot.part.type.PartType;
+import com.lucky.bot.part.type.Weapon;
+import com.lucky.bot.part.type.Wheel;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.MessageSource;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
@@ -67,6 +76,18 @@ public final class Util {
     );
 
     public static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Setter
+    private static volatile MessageSource messageSource;
+
+    public static String getLocalizedMessage(String key, String language) {
+        MessageSource ms = messageSource;
+        if (ms == null) {
+            return key;
+        }
+        Locale locale = StringUtils.isEmpty(language) ? Locale.ENGLISH : Locale.forLanguageTag(language);
+        return ms.getMessage(key, null, key, locale);
+    }
 
     public static List<Part> parts = new ArrayList<>();
 
@@ -307,11 +328,6 @@ public final class Util {
         return parts.stream().filter(p -> p.id() == partId).findAny().orElse(null);
     }
 
-    public static String getLocalizedMessage(String key, String language) {
-        Locale locale = StringUtils.isEmpty(language) ? Locale.ENGLISH : Locale.forLanguageTag(language);
-        return LocalizationConfig.messageSource().getMessage(key, null, locale);
-    }
-
     @SneakyThrows
     public static String callbackDataJson(Map<String, String> callbackDataMap) {
         return objectMapper.writeValueAsString(callbackDataMap);
@@ -377,25 +393,15 @@ public final class Util {
     }
 
     public static InlineKeyboardMarkup inlineKeyboardMarkup(List<InlineKeyboardRow> rowsInline) {
-        return InlineKeyboardMarkup
-                .builder()
-                .keyboard(rowsInline)
-                .build();
+        return InlineKeyboardMarkup.builder().keyboard(rowsInline).build();
     }
 
     public static InlineKeyboardMarkup inlineKeyboardMarkup(InlineKeyboardRow... rows) {
-        return InlineKeyboardMarkup
-                .builder()
-                .keyboard(List.of(rows))
-                .build();
+        return InlineKeyboardMarkup.builder().keyboard(List.of(rows)).build();
     }
 
     public static InlineKeyboardButton inlineKeyboardButton(String buttonText, Map<String, String> callbackData) {
-        return InlineKeyboardButton
-                .builder()
-                .text(buttonText)
-                .callbackData(callbackDataJson(callbackData))
-                .build();
+        return InlineKeyboardButton.builder().text(buttonText).callbackData(callbackDataJson(callbackData)).build();
     }
 
     public record PossibleUpgrade(int requiredCurrency, int requiredTokens, int remainingParts, int levelAfterUpgrade,

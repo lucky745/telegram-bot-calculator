@@ -13,7 +13,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.Map;
 
 import static com.lucky.bot.telegram.response.handler.callback.MenuResponse.callbackDataChooseLanguage;
-import static com.lucky.bot.util.Util.*;
+import static com.lucky.bot.util.Util.GRADE;
+import static com.lucky.bot.util.Util.QUESTION_MARK;
+import static com.lucky.bot.util.Util.TYPE;
+import static com.lucky.bot.util.Util.getLocalizedMessage;
+import static com.lucky.bot.util.Util.inlineKeyboardButton;
+import static com.lucky.bot.util.Util.inlineKeyboardMarkup;
 
 @Component
 public class PartTypeResponse extends BaseCallbackHandler {
@@ -23,7 +28,7 @@ public class PartTypeResponse extends BaseCallbackHandler {
         super(CallbackType.PART_TYPE);
     }
 
-    @Cacheable(value = "partGrade", key = "#callbackData.locale() + ':' + #callbackData.partType()")
+    @Cacheable(value = "partGrade", key = "#callbackData.getLocale() + ':' + #callbackData.partType()")
     @Override
     public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();

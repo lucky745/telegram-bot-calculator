@@ -1,7 +1,13 @@
-FROM eclipse-temurin:21-jre-jammy
+FROM gcr.io/distroless/java21-debian12:nonroot
+
 WORKDIR /app
-VOLUME /tmp
-COPY target/*.jar app.jar
-ENV JAVA_OPTS="-Xmx356m -Xms264m -XX:MaxRAM=380m -XX:+UseSerialGC -XX:+UseCompressedOops -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app/app.jar"]
+COPY target/*.jar /app/app.jar
+
+ENV JAVA_TOOL_OPTIONS="\
+-XX:MaxRAMPercentage=65 \
+-XX:InitialRAMPercentage=20 \
+-XX:+UseSerialGC \
+-XX:+ExitOnOutOfMemoryError \
+"
+
+ENTRYPOINT ["java","-jar","/app/app.jar"]

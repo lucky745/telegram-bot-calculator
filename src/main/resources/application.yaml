@@ -2,6 +2,7 @@ spring:
   application:
     name: parts-calculator-bot
   main:
+    web-application-type: none
     banner-mode: off
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

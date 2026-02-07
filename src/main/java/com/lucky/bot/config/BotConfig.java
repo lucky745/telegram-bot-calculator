@@ -11,7 +11,11 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -21,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BotConfig {
     private String token;
     private String name;
+    private long creatorId;
     private List<Long> adminIds = new ArrayList<>();
 
     @Bean
@@ -28,16 +33,21 @@ public class BotConfig {
         return new OkHttpTelegramClient(token);
     }
 
-    @Bean
-    public Executor botUpdateExecutor() {
-        int corePoolSize = Runtime.getRuntime().availableProcessors() * 2;
+    /**
+     * Used for processing incoming updates.
+     * - non-daemon threads -> keep JVM alive
+     * - destroyMethod -> graceful shutdown on Spring stop
+     */
+    @Bean(destroyMethod = "shutdown")
+    public ExecutorService botUpdateExecutor() {
+        int corePoolSize = Math.max(2, Runtime.getRuntime().availableProcessors());
         int maxPoolSize = corePoolSize * 2;
 
         return new ThreadPoolExecutor(
                 corePoolSize,
                 maxPoolSize,
                 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(1000),
+                new LinkedBlockingQueue<>(2000),
                 new ThreadFactory() {
                     private final AtomicInteger threadCount = new AtomicInteger(1);
 
@@ -45,7 +55,7 @@ public class BotConfig {
                     public Thread newThread(@NotNull Runnable r) {
                         Thread thread = new Thread(r);
                         thread.setName("bot-update-" + threadCount.getAndIncrement());
-                        thread.setDaemon(true);
+                        thread.setDaemon(false);
                         return thread;
                     }
                 },
