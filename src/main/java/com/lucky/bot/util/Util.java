@@ -1,6 +1,7 @@
 package com.lucky.bot.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lucky.bot.config.SpringContext;
 import com.lucky.bot.part.Part;
 import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.grade.Upgrade;
@@ -81,12 +82,18 @@ public final class Util {
     private static volatile MessageSource messageSource;
 
     public static String getLocalizedMessage(String key, String language) {
-        MessageSource ms = messageSource;
-        if (ms == null) {
+        try {
+            MessageSource ms = messageSource;
+            if (ms == null) {
+                ms = SpringContext.getBean(MessageSource.class);
+                messageSource = ms;
+            }
+
+            Locale locale = StringUtils.isEmpty(language) ? Locale.ENGLISH : Locale.forLanguageTag(language);
+            return ms.getMessage(key, null, key, locale);
+        } catch (Exception e) {
             return key;
         }
-        Locale locale = StringUtils.isEmpty(language) ? Locale.ENGLISH : Locale.forLanguageTag(language);
-        return ms.getMessage(key, null, key, locale);
     }
 
     public static List<Part> parts = new ArrayList<>();
@@ -155,6 +162,7 @@ public final class Util {
         parts.add(new Part(id++, "sea_monster", new Weapon(10500, 15), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "gumball_gun", new Weapon(13650, 15), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "electric_eel", new Weapon(12000, 10), PartGrade.EXTRAORDINARY));
+        parts.add(new Part(id++, "kitty_orb", new Weapon(15844, 10), PartGrade.EXTRAORDINARY));
 
 //--------------------------------------------------------------body---------------------------------------------------------------
 
@@ -198,6 +206,7 @@ public final class Util {
         parts.add(new Part(id++, "phantom_circus", new Chassis(50697, 40), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "green_dragon", new Chassis(48392, 35), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "popsicle_beast", new Chassis(50858, 35), PartGrade.EXTRAORDINARY));
+        parts.add(new Part(id++, "claw_rider", new Chassis(56640, 35), PartGrade.EXTRAORDINARY));
 
 //--------------------------------------------------------------gadget---------------------------------------------------------------
 

@@ -3,7 +3,6 @@ package com.lucky.bot.telegram.response.handler.callback;
 import com.lucky.bot.part.type.PartType;
 import com.lucky.bot.telegram.response.Response;
 import com.lucky.bot.util.TemplateBuilder;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -28,7 +27,6 @@ public class LanguageResponse extends BaseCallbackHandler {
         super(CallbackType.LANGUAGE);
     }
 
-    @Cacheable(value = "language", key = "#callbackData.getLocale()")
     @Override
     public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();

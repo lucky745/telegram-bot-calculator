@@ -14,10 +14,17 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.ACTION;
 import static com.lucky.bot.telegram.response.handler.callback.ActionCode.GRADE;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.LANGUAGE;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.LEVEL;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.PART;
+import static com.lucky.bot.telegram.response.handler.callback.ActionCode.SPARE_PART;
 import static com.lucky.bot.telegram.response.handler.callback.ActionCode.TYPE;
-import static com.lucky.bot.telegram.response.handler.callback.ActionCode.*;
-import static com.lucky.bot.util.Util.*;
+import static com.lucky.bot.util.Util.LOCALE_EN;
+import static com.lucky.bot.util.Util.LOCALE_RU;
+import static com.lucky.bot.util.Util.getPartById;
+import static com.lucky.bot.util.Util.objectMapper;
 
 @Slf4j
 @Getter
@@ -45,7 +52,8 @@ public class CallbackData {
         } else {
             callbackData = objectMapper.readValue(jsonData, new TypeReference<>() {
             });
-            locale = callbackData.get(LANGUAGE.getCode());
+            String loc = callbackData.get(LANGUAGE.getCode());
+            locale = StringUtils.isEmpty(loc) ? LOCALE_EN : loc;
             String action = callbackData.get(ACTION.getCode());
             callbackType = CallbackType.from(action).orElse(null);
         }

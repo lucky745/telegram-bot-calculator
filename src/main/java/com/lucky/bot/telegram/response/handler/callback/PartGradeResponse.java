@@ -5,7 +5,6 @@ import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.type.PartType;
 import com.lucky.bot.telegram.response.Response;
 import com.lucky.bot.util.TemplateBuilder;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -16,7 +15,13 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.lucky.bot.telegram.response.handler.callback.LanguageResponse.callbackDataChoosePartType;
-import static com.lucky.bot.util.Util.*;
+import static com.lucky.bot.util.Util.GRADE;
+import static com.lucky.bot.util.Util.QUESTION_MARK;
+import static com.lucky.bot.util.Util.TYPE;
+import static com.lucky.bot.util.Util.getLocalizedMessage;
+import static com.lucky.bot.util.Util.getPartsByTypeAndGrade;
+import static com.lucky.bot.util.Util.inlineKeyboardButton;
+import static com.lucky.bot.util.Util.inlineKeyboardMarkup;
 
 @Component
 public class PartGradeResponse extends BaseCallbackHandler {
@@ -27,8 +32,6 @@ public class PartGradeResponse extends BaseCallbackHandler {
         super(CallbackType.PART_GRADE);
     }
 
-    @Cacheable(value = "partGrade",
-            key = "#callbackData.locale() + ':' + #callbackData.partType() + ':' + #callbackData.partGrade")
     @Override
     public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();

@@ -4,7 +4,6 @@ import com.lucky.bot.part.grade.PartGrade;
 import com.lucky.bot.part.type.PartType;
 import com.lucky.bot.telegram.response.Response;
 import com.lucky.bot.util.TemplateBuilder;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -28,7 +27,6 @@ public class PartTypeResponse extends BaseCallbackHandler {
         super(CallbackType.PART_TYPE);
     }
 
-    @Cacheable(value = "partGrade", key = "#callbackData.getLocale() + ':' + #callbackData.partType()")
     @Override
     public Response handle(CallbackData callbackData) {
         String locale = callbackData.getLocale();
