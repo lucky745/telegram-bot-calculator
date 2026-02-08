@@ -7,17 +7,20 @@ import static com.lucky.bot.util.Util.MAX_PART_LEVEL;
 
 @Getter
 public abstract class UpgradeableStat extends BaseStat {
-    private final int[] levels = new int[MAX_PART_LEVEL];
 
-    public UpgradeableStat(int amount, Stat stat) {
+    private final int[] levels;
+
+    protected UpgradeableStat(int amount, Stat stat) {
         super(amount, stat);
-        initialize();
+        this.levels = buildLevels(amount);
     }
 
-    public void initialize() {
-        levels[0] = getAmount();
-        for (int i = 1; i < levels.length; i++) {
-            levels[i] = (int) Math.floor(levels[i - 1] * LEVEL_MULTIPLIERS.get(i - 1));
+    private static int[] buildLevels(int baseAmount) {
+        int[] lvls = new int[MAX_PART_LEVEL];
+        lvls[0] = baseAmount;
+        for (int i = 1; i < lvls.length; i++) {
+            lvls[i] = (int) Math.floor(lvls[i - 1] * LEVEL_MULTIPLIERS.get(i - 1));
         }
+        return lvls;
     }
 }
