@@ -197,8 +197,8 @@ public final class Util {
         parts.add(new Part(id++, "purr_mobile", new Chassis(18880, 35), PartGrade.OUTSTANDING));
         parts.add(new Part(id++, "stingy_bandit", new Chassis(21240, 35), PartGrade.OUTSTANDING));
 
-        parts.add(new Part(id++, "tubby_bus", new Chassis(32568, 35), PartGrade.EXTRAORDINARY));
-        parts.add(new Part(id++, "schrodintech", new Chassis(38409, 35), PartGrade.EXTRAORDINARY));
+        parts.add(new Part(id++, "tubby_bus", new Chassis(35825, 35), PartGrade.EXTRAORDINARY));
+        parts.add(new Part(id++, "schrodintech", new Chassis(50411, 40), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "cool_ducky", new Chassis(49560, 35), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "iron_maiden", new Chassis(40120, 35), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "blossom_star", new Chassis(44181, 35), PartGrade.EXTRAORDINARY));
