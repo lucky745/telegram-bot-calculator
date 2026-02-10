@@ -2,6 +2,7 @@ package com.lucky.bot.telegram.handler;
 
 import com.lucky.bot.telegram.response.Response;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -11,9 +12,11 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.Serializable;
+import java.util.concurrent.CompletionException;
 
 import static com.lucky.bot.util.Util.HTML;
 import static com.lucky.bot.util.Util.MARKDOWN;
@@ -21,17 +24,18 @@ import static com.lucky.bot.util.Util.MARKDOWN;
 @Slf4j
 @Getter
 @Component
+@RequiredArgsConstructor
 public class SilentSender {
     private final TelegramClient telegramClient;
-
-    public SilentSender(TelegramClient telegramClient) {
-        this.telegramClient = telegramClient;
-    }
 
     public <T extends Serializable> void execute(BotApiMethod<T> method) {
         try {
             telegramClient.execute(method);
         } catch (TelegramApiException e) {
+            if (isIgnorable(e)) {
+                log.debug("Ignored Telegram error: {}", e.getMessage());
+                return;
+            }
             log.error("Could not execute bot API method", e);
         }
     }
@@ -40,11 +44,19 @@ public class SilentSender {
         try {
             telegramClient.executeAsync(method)
                     .exceptionally(ex -> {
-                        log.error("Async execution failed: {}", ex.getMessage());
+                        if (isIgnorable(ex)) {
+                            log.debug("Ignored async Telegram error: {}", unwrap(ex).getMessage());
+                        } else {
+                            log.error("Async execution failed", unwrap(ex));
+                        }
                         return null;
                     });
         } catch (TelegramApiException e) {
-            log.error("Synchronous execution failed: {}", e.getMessage());
+            if (isIgnorable(e)) {
+                log.debug("Ignored Telegram error async: {}", e.getMessage());
+                return;
+            }
+            log.error("Synchronous execution failed: {}", e.getMessage(), e);
         }
     }
 
@@ -62,12 +74,15 @@ public class SilentSender {
     }
 
     public void executeAsyncCallbackResponse(Update upd, Response response) {
+        String callbackId = getCallbackQueryId(upd);
+
         if (response.keyboard() == null) {
-            executeAsync(simpleCallbackAnswer(getCallbackQueryId(upd), response.text(), true));
-        } else {
-            executeAsync(simpleCallbackAnswer(getCallbackQueryId(upd)));
-            executeAsync(editMessageText(upd, response));
+            execute(simpleCallbackAnswer(callbackId, response.text(), true));
+            return;
         }
+
+        execute(simpleCallbackAnswer(callbackId));
+        executeAsync(editMessageText(upd, response));
     }
 
     private EditMessageText editMessageText(Update upd, Response response) {
@@ -85,12 +100,30 @@ public class SilentSender {
     }
 
     private AnswerCallbackQuery simpleCallbackAnswer(String callbackQueryId, String text, boolean alert) {
-        return AnswerCallbackQuery
-                .builder()
+        return AnswerCallbackQuery.builder()
                 .callbackQueryId(callbackQueryId)
                 .showAlert(alert)
                 .text(text)
                 .build();
+    }
+
+    private static boolean isIgnorable(Throwable t) {
+        Throwable root = unwrap(t);
+        if (!(root instanceof TelegramApiRequestException)) return false;
+
+        String msg = root.getMessage();
+        if (msg == null) return false;
+
+        String m = msg.toLowerCase();
+        return m.contains("message is not modified")
+                || m.contains("query is too old")
+                || m.contains("response timeout expired")
+                || m.contains("query id is invalid");
+    }
+
+    private static Throwable unwrap(Throwable t) {
+        if (t instanceof CompletionException ce && ce.getCause() != null) return ce.getCause();
+        return t;
     }
 
     private static long getChatId(Update upd) {

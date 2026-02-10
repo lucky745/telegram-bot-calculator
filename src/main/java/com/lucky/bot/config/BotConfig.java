@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -43,11 +42,11 @@ public class BotConfig {
         int corePoolSize = Math.max(2, Runtime.getRuntime().availableProcessors());
         int maxPoolSize = corePoolSize * 2;
 
-        return new ThreadPoolExecutor(
+        ThreadPoolExecutor exec = new ThreadPoolExecutor(
                 corePoolSize,
                 maxPoolSize,
                 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(2000),
+                new java.util.concurrent.SynchronousQueue<>(),
                 new ThreadFactory() {
                     private final AtomicInteger threadCount = new AtomicInteger(1);
 
@@ -61,5 +60,8 @@ public class BotConfig {
                 },
                 new ThreadPoolExecutor.CallerRunsPolicy()
         );
+
+        exec.prestartAllCoreThreads();
+        return exec;
     }
 }

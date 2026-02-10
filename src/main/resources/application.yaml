@@ -13,7 +13,9 @@ bot:
   admin-ids:
     - ${CREATOR_ID:}
 logging:
+  console:
+    enabled: false
   level:
-    root: INFO
-    com.lucky.bot: INFO
-    org.telegram: WARN
+    root: WARN
+    com.lucky.bot: WARN
+    org.telegram: ERROR
