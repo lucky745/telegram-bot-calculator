@@ -163,6 +163,7 @@ public final class Util {
         parts.add(new Part(id++, "gumball_gun", new Weapon(13650, 15), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "electric_eel", new Weapon(12000, 10), PartGrade.EXTRAORDINARY));
         parts.add(new Part(id++, "kitty_orb", new Weapon(15844, 10), PartGrade.EXTRAORDINARY));
+        parts.add(new Part(id++, "mad_panda", new Weapon(13520, 15), PartGrade.EXTRAORDINARY));
 
 //--------------------------------------------------------------body---------------------------------------------------------------
 
