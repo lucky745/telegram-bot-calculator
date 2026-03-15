@@ -2,7 +2,9 @@ package com.lucky.bot.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -12,10 +14,9 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 @Setter
@@ -29,7 +30,17 @@ public class BotConfig {
 
     @Bean
     public TelegramClient telegramClient() {
-        return new OkHttpTelegramClient(token);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .protocols(List.of(Protocol.HTTP_1_1))
+            .connectionPool(new ConnectionPool(5, 5, TimeUnit.MINUTES))
+            .build();
+
+        return new OkHttpTelegramClient(client, token);
     }
 
     /**
@@ -39,26 +50,18 @@ public class BotConfig {
      */
     @Bean(destroyMethod = "shutdown")
     public ExecutorService botUpdateExecutor() {
-        int corePoolSize = Math.max(2, Runtime.getRuntime().availableProcessors());
-        int maxPoolSize = corePoolSize * 2;
+        int corePoolSize = Math.max(1, Runtime.getRuntime().availableProcessors());
+        int maxPoolSize = corePoolSize + 1;
 
         ThreadPoolExecutor exec = new ThreadPoolExecutor(
-                corePoolSize,
-                maxPoolSize,
-                60L, TimeUnit.SECONDS,
-                new java.util.concurrent.SynchronousQueue<>(),
-                new ThreadFactory() {
-                    private final AtomicInteger threadCount = new AtomicInteger(1);
-
-                    @Override
-                    public Thread newThread(@NotNull Runnable r) {
-                        Thread thread = new Thread(r);
-                        thread.setName("bot-update-" + threadCount.getAndIncrement());
-                        thread.setDaemon(false);
-                        return thread;
-                    }
-                },
-                new ThreadPoolExecutor.CallerRunsPolicy()
+            corePoolSize,
+            maxPoolSize,
+            60L, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(100),
+            Thread.ofPlatform()
+                .name("bot-update-", 1)
+                .factory(),
+            new ThreadPoolExecutor.CallerRunsPolicy()
         );
 
         exec.prestartAllCoreThreads();
